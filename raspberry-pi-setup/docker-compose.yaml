@@ -1,0 +1,96 @@
+#Configuration file for docker-compose
+#This file automatically configures InfluxDB, Grafana, Telegraf, Mosquitto, and Home Assistant
+#Authentication variables can be found in the accompanied docker-compose.env file
+
+services:
+#InfluxDB serves as the database for system, handling data storage,
+#retention, and retrieval of all relevant data
+  influxdb:                     
+    image: influxdb:1.11-alpine
+    container_name: influxdb
+    restart: unless-stopped    
+    ports:
+      - "8086:8086"
+    environment:
+      - INFLUXDB_DB=${INFLUXDB}
+      - INFLUXDB_ADMIN_USER=${INFLUXDB_USERNAME}
+      - INFLUXDB_ADMIN_PASSWORD=${INFLUXDB_PASSWORD}
+    volumes:
+      - ${INFLUXDB_VOLUME:?err}:/var/lib/influxdb
+    networks:
+      - chessnet        
+
+#Grafana serves as the visualization platform for the InfluxDB database, providing
+#dashboards and visualizations that can be imported within Home Assistant
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    volumes:
+      - ${GRAFANA_VOLUME:?err}:/var/lib/grafana
+      - ${GRAFANA_VOLUME:?err}/provisioning:/etc/grafana/provisioning      
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_USERNAME}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD}
+      - GF_SECURITY_ALLOW_EMBEDDING=true
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Viewer
+    networks:
+      - chessnet        
+
+#Telegraf serves as the data collector for the system, collecting data 
+#and sending it to the InfluxDB database
+  telegraf:
+    image: telegraf:latest
+    container_name: telegraf
+    restart: unless-stopped
+    ports:
+      - "8094:8094" #telegraf listener port  
+    volumes:
+      - ${TELEGRAF_VOLUME}:/etc/telegraf/:ro  
+      - ${RAWDATA_VOLUME}:/data:ro      
+    environment:
+      - INFLUXDB_URL=${INFLUXDB_URL}
+      - INFLUXDB_USER=${INFLUXDB_USERNAME}  
+      - INFLUXDB_PASSWORD=${INFLUXDB_PASSWORD}  
+      - INFLUXDB_DATABASE=${INFLUXDB_DB}  
+    networks:
+      - chessnet        
+
+#MQTT5 serves as the message broker for the system, handling communications
+#using the MQTT protocol
+  mqtt5:
+    image: eclipse-mosquitto
+    container_name: mqtt5
+    restart: unless-stopped    
+    ports:
+      - "1883:1883" #default mqtt port
+      - "9001:9001" #default mqtt port for websockets
+    volumes:
+      - ${MOSQUITTO_VOLUME}:/mosquitto/config:rw
+      - ${MQTT_VOLUME:?err}/data:/mosquitto/data:rw
+      - ${MQTT_VOLUME:?err}/log:/mosquitto/log:rw
+    networks:
+      - chessnet        
+    
+#Home Assistant serves as the home automation platform for the solar server system,
+#providing a web-interface for visualization and a control panel for ESP32 commands
+  homeassistant:
+    image: "ghcr.io/home-assistant/home-assistant:stable"
+    container_name: home-assistant 
+    restart: unless-stopped   
+    ports:
+      - "8123:8123"     
+    volumes:
+      - ${HA_VOLUME}/config:/config 
+    environment:
+      - TZ=America/Toronto
+      - HA_USERNAME=${HA_USERNAME}
+      - HA_PASSWORD=${HA_PASSWORD}    
+    networks:
+      - chessnet  
+
+networks:
+  chessnet:
