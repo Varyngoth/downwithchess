@@ -5,23 +5,39 @@ echo "Updating package list and upgrading packages..."
 sudo apt-get update -y
 sudo apt-get upgrade -y
 
-# Install dependencies for Docker and Tailscale
-echo "Installing dependencies..."
-sudo apt-get install -y apt-transport-https ca-certificates curl gnupg lsb-release
+# Update package list and install required packages
+echo "Updating package list and installing required packages..."
+sudo apt-get update
+sudo apt-get install -y ca-certificates curl
 
-# Install Docker Engine (latest version)
-echo "Installing Docker..."
-curl -fsSL https://get.docker.com -o get-docker.sh
-sudo sh get-docker.sh
-sudo usermod -aG docker $USER
-sudo systemctl enable docker
-sudo systemctl start docker
+# Create the directory for keyrings if it doesn't exist
+echo "Creating directory for keyrings..."
+sudo install -m 0755 -d /etc/apt/keyrings
 
-# Install Docker Compose (latest version)
-echo "Installing Docker Compose..."
-DOCKER_COMPOSE_LATEST=$(curl -s https://api.github.com/repos/docker/compose/releases/latest | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
-sudo curl -L "https://github.com/docker/compose/releases/download/$DOCKER_COMPOSE_LATEST/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-sudo chmod +x /usr/local/bin/docker-compose
+# Download Docker's official GPG key
+echo "Downloading Docker's official GPG key..."
+sudo curl -fsSL https://download.docker.com/linux/debian/gpg -o /etc/apt/keyrings/docker.asc
+
+# Set permissions for the GPG key
+echo "Setting permissions for the GPG key..."
+sudo chmod a+r /etc/apt/keyrings/docker.asc
+
+# Add Docker repository to Apt sources
+echo "Adding Docker repository to Apt sources..."
+echo \
+  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/debian \
+  $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
+  sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+# Update package list again to include Docker repository
+echo "Updating package list with Docker repository..."
+sudo apt-get update
+
+# Install Docker components
+echo "Installing Docker and related components..."
+sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+
+echo "Setup complete! Docker and related components installed successfully."
 
 # Navigate to the repository and get docker-compose files
 cd ~/raspberry-pi-setup
