@@ -1,0 +1,12 @@
+[Unit]
+Description=MQTT Python Script Service
+Requires=dev-ttyACM0.device
+After=network.target dev-ttyACM0.device
+
+[Service]
+ExecStart=/usr/bin/python3 /srv/python/mqtt.py
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

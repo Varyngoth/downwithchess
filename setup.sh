@@ -91,6 +91,15 @@ TELEGRAF_DEST_DIR="$TELEGRAF_VOLUME"  # Use the TELEGRAF_VOLUME from the docker-
 MOSQUITTO_CONFIG_PATH="$CLONE_DIR/mosquitto.conf"
 MOSQUITTO_DEST_DIR="$MOSQUITTO_VOLUME"  # Use the MOSQUITTO_VOLUME from the docker-compose.env file
 
+# Arduino Logging Script
+ARDUINO_SCRIPT_PATH="$CLONE_DIR/mqtt.py"
+ARDUINO_SCRIPT_DEST_DIR="$ARDUINO_SCRIPT_VOLUME"  # Use the MOSQUITTO_VOLUME from the docker-compose.env file
+
+# Arduino Logging Service
+ARDUINO_SERVICE_PATH="$CLONE_DIR/mqtt.py"
+SERVICE_FILE="mqtt.service"
+SYSTEMD_DIR="/etc/systemd/system"
+
 # Move the Telegraf configuration file if it exists
 if [ -f "$TELEGRAF_CONFIG_PATH" ]; then
   echo "Moving Telegraf configuration to $TELEGRAF_DEST_DIR..."
@@ -115,6 +124,41 @@ else
   exit 1
 fi
 
+# Move the Mosquitto configuration file if it exists
+if [ -f "$ARDUINO_SCRIPT_PATH" ]; then
+  echo "Moving Mosquitto configuration to $ARDUINO_SCRIPT_DEST_DIR..."
+  # Create destination directory if it doesn't exist
+  sudo mkdir -p "$ARDUINO_SCRIPT_DEST_DIR"
+  # Move the configuration file
+  sudo mv "$ARDUINO_SCRIPT_PATH" "$ARDUINO_SCRIPT_DEST_DIR"
+else
+  echo "Mosquitto configuration file not found in the current directory at $ARDUINO_SCRIPT_PATH"
+  exit 1
+fi
+
+# Move the Mosquitto configuration file if it exists
+if [ -f "$ARDUINO_SERVICE_PATH" ]; then
+  echo "Moving Mosquitto configuration to $ARDUINO_SERVICE_DEST_DIR..."
+  # Create destination directory if it doesn't exist
+  sudo mkdir -p "$ARDUINO_SERVICE_DEST_DIR"
+  # Move the configuration file
+  sudo mv "$ARDUINO_SERVICE_PATH" "$SYSTEMD_DIR"
+else
+  echo "Mosquitto configuration file not found in the current directory at $ARDUINO_SERVICE_PATH"
+  exit 1
+fi
+
+echo "Reloading systemd daemon"
+systemctl daemon-reload
+
+# 5. Enable the service to start on boot
+echo "Enabling service"
+systemctl enable "$SERVICE_FILE"
+
+# 6. Start the service
+echo "Starting service"
+systemctl start "$SERVICE_FILE"
+
 # Prompt for passwords and update docker-compose.env
 echo "Please enter the required passwords for the containers..."
 
@@ -136,7 +180,7 @@ for key in "${!passwords[@]}"; do
 done
 
 # Prompt the user for Portainer admin password
-echo "Portainer Admin Password"
+echo "Portainer Admin Password (Minimum of 12 characters)"
 read -s PORTAINER_PASSWORD  # -s hides the input for security
 
 # Check if the password is at least 12 characters long
@@ -174,6 +218,9 @@ if ! docker ps -a --format '{{.Names}}' | grep -q 'portainer'; then
 else
     echo "Portainer is already deployed!"
 fi
+
+
+
 
 # Deploy the Docker Compose stacks
 #echo "Deploying Docker Compose stacks..."
