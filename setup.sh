@@ -136,8 +136,17 @@ for key in "${!passwords[@]}"; do
 done
 
 # Prompt the user for Portainer admin password
-echo "Please enter a password for the Portainer admin user:"
+echo "Portainer Admin Password"
 read -s PORTAINER_PASSWORD  # -s hides the input for security
+
+# Check if the password is at least 12 characters long
+while [ ${#PORTAINER_PASSWORD} -lt 12 ]; do
+    echo "Error: Password must be at least 12 characters long."
+    echo "Please enter a valid password:"
+    read -s PORTAINER_PASSWORD
+done
+
+echo "Password accepted."
 
 # Check if Portainer is already installed (by checking if the Portainer container exists)
 if ! docker ps -a --format '{{.Names}}' | grep -q 'portainer'; then
