@@ -72,7 +72,7 @@ for VOLUME in "${VOLUMES[@]}"; do
     sudo chown -R root:docker "$VOLUME_PATH" || { echo "Failed to set ownership for $VOLUME_PATH"; exit 1; }
 
     # Set permissions to be open for Docker usage
-    sudo chmod -R 775 "$VOLUME_PATH" || { echo "Failed to set permissions for $VOLUME_PATH"; exit 1; }
+    sudo chmod -R 777 "$VOLUME_PATH" || { echo "Failed to set permissions for $VOLUME_PATH"; exit 1; }
 
     # Optionally, you can make the group 'docker' if you want to ensure all Docker containers have access
     # usermod -aG docker $(whoami)  # Uncomment if needed
