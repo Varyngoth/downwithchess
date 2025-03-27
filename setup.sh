@@ -49,6 +49,12 @@ VOLUME_BASE="/srv"
 # List of volume names you want to create
 VOLUMES=("telegraf" "mosquitto" "homeassistant" "influxdb" "grafana")
 
+# Ensure the docker group exists
+if ! getent group docker > /dev/null; then
+    echo "Docker group does not exist. Please create the group first."
+    exit 1
+fi
+
 # Create the volumes and set permissions
 for VOLUME in "${VOLUMES[@]}"; do
     VOLUME_PATH="${VOLUME_BASE}/${VOLUME}"
@@ -56,22 +62,22 @@ for VOLUME in "${VOLUMES[@]}"; do
     # Create the directory if it does not exist
     if [ ! -d "$VOLUME_PATH" ]; then
         echo "Creating volume at $VOLUME_PATH"
-        mkdir -p "$VOLUME_PATH"
+        mkdir -p "$VOLUME_PATH" || { echo "Failed to create $VOLUME_PATH"; exit 1; }
     else
         echo "Volume at $VOLUME_PATH already exists"
     fi
 
-    # Change ownership to ensure Docker can access it (replace 'dockeruser' with your user if needed)
+    # Change ownership to ensure Docker can access it (replace 'root' with your user if needed)
     echo "Setting permissions for $VOLUME_PATH"
-    chown -R root:docker "$VOLUME_PATH"  # Make sure the Docker group has access
+    sudo chown -R root:docker "$VOLUME_PATH" || { echo "Failed to set ownership for $VOLUME_PATH"; exit 1; }
 
     # Set permissions to be open for Docker usage
-    chmod -R 775 "$VOLUME_PATH"  # Allows read/write for owner and group, read for others
+    sudo chmod -R 775 "$VOLUME_PATH" || { echo "Failed to set permissions for $VOLUME_PATH"; exit 1; }
 
     # Optionally, you can make the group 'docker' if you want to ensure all Docker containers have access
-    # This command may be useful if you want Docker containers to have access without being root
-    # usermod -aG docker $(whoami)
+    # usermod -aG docker $(whoami)  # Uncomment if needed
 done
+
 
 # Define variables
 CLONE_DIR="$PWD"  # Current directory where the repo is cloned
