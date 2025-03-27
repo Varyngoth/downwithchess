@@ -96,7 +96,7 @@ ARDUINO_SCRIPT_PATH="$CLONE_DIR/mqtt.py"
 ARDUINO_SCRIPT_DEST_DIR="$ARDUINO_SCRIPT_VOLUME"  # Use the MOSQUITTO_VOLUME from the docker-compose.env file
 
 # Arduino Logging Service
-ARDUINO_SERVICE_PATH="$CLONE_DIR/mqtt.py"
+ARDUINO_SERVICE_PATH="$CLONE_DIR/mqtt.service"
 SERVICE_FILE="mqtt.service"
 SYSTEMD_DIR="/etc/systemd/system"
 
@@ -124,7 +124,7 @@ else
   exit 1
 fi
 
-# Move the Mosquitto configuration file if it exists
+# Move the Arduino Interaction Script if it exists
 if [ -f "$ARDUINO_SCRIPT_PATH" ]; then
   echo "Moving Arduino script to $ARDUINO_SCRIPT_DEST_DIR..."
   # Create destination directory if it doesn't exist
@@ -136,7 +136,7 @@ else
   exit 1
 fi
 
-# Move the Mosquitto configuration file if it exists
+# Move the Arduino Daemon service file if it exists
 if [ -f "$ARDUINO_SERVICE_PATH" ]; then
   echo "Moving Arduino service to $ARDUINO_SERVICE_DEST_DIR..."
   # Create destination directory if it doesn't exist
@@ -147,17 +147,6 @@ else
   echo "Arduino service not found in the current directory at $ARDUINO_SERVICE_PATH"
   exit 1
 fi
-
-echo "Reloading systemd daemon"
-systemctl daemon-reload
-
-# 5. Enable the service to start on boot
-echo "Enabling service"
-systemctl enable "$SERVICE_FILE"
-
-# 6. Start the service
-echo "Starting service"
-systemctl start "$SERVICE_FILE"
 
 # Prompt for passwords and update docker-compose.env
 echo "Please enter the required passwords for the containers..."
@@ -219,13 +208,21 @@ else
     echo "Portainer is already deployed!"
 fi
 
-
-
-
 # Deploy the Docker Compose stacks
 #echo "Deploying Docker Compose stacks..."
 #docker-compose up -d
-#
+
+echo "Reloading systemd daemon"
+systemctl daemon-reload
+
+# 5. Enable the service to start on boot
+echo "Enabling Arduino Listener"
+systemctl enable "$SERVICE_FILE"
+
+# 6. Start the service
+echo "Starting Arduino Listener"
+systemctl start "$SERVICE_FILE"
+
 ## Install Tailscale (latest version)
 #echo "Installing Tailscale..."
 #curl -fsSL https://tailscale.com/install.sh | sh

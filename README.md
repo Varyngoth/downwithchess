@@ -11,7 +11,7 @@ This repository contains all of the files required to initialize a Raspberry Pi 
 
 ## Raspberry Pi Preparation and OS Setup
 
-## Raspberri Pi Program Setup
+## Raspberry Pi Program Setup
 
 Copy and pase the following command into the command terminal for the Raspberry Pi
 
