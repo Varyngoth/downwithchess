@@ -33,7 +33,7 @@ sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose || 
 echo "Docker installation complete!"
 
 # Navigate to the repository and get docker-compose files
-cd ~/raspberry-pi-setup
+cd ./raspberry-pi-setup
 
 # Load environment variables from docker-compose.env file
 if [ -f "./docker-compose.env" ]; then
