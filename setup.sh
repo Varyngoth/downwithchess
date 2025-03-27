@@ -47,7 +47,7 @@ fi
 VOLUME_BASE="/srv"
 
 # List of volume names you want to create
-VOLUMES=("telegraf" "mosquitto" "homeassistant" "influxdb" "grafana")
+VOLUMES=("telegraf" "mosquitto" "homeassistant" "influxdb" "grafana" "arduino")
 
 # Ensure the docker group exists
 if ! getent group docker > /dev/null; then
@@ -126,25 +126,25 @@ fi
 
 # Move the Mosquitto configuration file if it exists
 if [ -f "$ARDUINO_SCRIPT_PATH" ]; then
-  echo "Moving Mosquitto configuration to $ARDUINO_SCRIPT_DEST_DIR..."
+  echo "Moving Arduino script to $ARDUINO_SCRIPT_DEST_DIR..."
   # Create destination directory if it doesn't exist
   sudo mkdir -p "$ARDUINO_SCRIPT_DEST_DIR"
   # Move the configuration file
   sudo mv "$ARDUINO_SCRIPT_PATH" "$ARDUINO_SCRIPT_DEST_DIR"
 else
-  echo "Mosquitto configuration file not found in the current directory at $ARDUINO_SCRIPT_PATH"
+  echo "Arduino script not found in the current directory at $ARDUINO_SCRIPT_PATH"
   exit 1
 fi
 
 # Move the Mosquitto configuration file if it exists
 if [ -f "$ARDUINO_SERVICE_PATH" ]; then
-  echo "Moving Mosquitto configuration to $ARDUINO_SERVICE_DEST_DIR..."
+  echo "Moving Arduino service to $ARDUINO_SERVICE_DEST_DIR..."
   # Create destination directory if it doesn't exist
   sudo mkdir -p "$ARDUINO_SERVICE_DEST_DIR"
   # Move the configuration file
   sudo mv "$ARDUINO_SERVICE_PATH" "$SYSTEMD_DIR"
 else
-  echo "Mosquitto configuration file not found in the current directory at $ARDUINO_SERVICE_PATH"
+  echo "Arduino service not found in the current directory at $ARDUINO_SERVICE_PATH"
   exit 1
 fi
 
