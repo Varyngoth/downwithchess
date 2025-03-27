@@ -7,4 +7,4 @@ cd downwithchess
 
 chmod +x setup.sh
 
-sh setup.sh
+bash setup.sh

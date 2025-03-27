@@ -78,6 +78,7 @@ for VOLUME in "${VOLUMES[@]}"; do
     # usermod -aG docker $(whoami)  # Uncomment if needed
 done
 
+echo "${VOLUMES[@]}"
 
 # Define variables
 CLONE_DIR="$PWD"  # Current directory where the repo is cloned
