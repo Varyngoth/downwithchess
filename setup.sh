@@ -2,24 +2,35 @@
 
 # Update package list and upgrade packages
 echo "Updating package list and upgrading packages..."
-sudo apt-get update -y
-sudo apt-get upgrade -y
+sudo apt-get update -y || { echo "Update failed"; exit 1; }
+sudo apt-get upgrade -y || { echo "Upgrade failed"; exit 1; }
 
-# Add Docker's official GPG key:
-sudo apt-get update
-sudo apt-get install ca-certificates curl
-sudo install -m 0755 -d /etc/apt/keyrings
-sudo curl -fsSL https://download.docker.com/linux/debian/gpg -o /etc/apt/keyrings/docker.asc
-sudo chmod a+r /etc/apt/keyrings/docker.asc
+# Install necessary certificates and dependencies
+echo "Installing necessary certificates and dependencies..."
+sudo apt-get install -y ca-certificates curl || { echo "Package installation failed"; exit 1; }
 
-# Add the repository to Apt sources:
+# Create the directory for keyrings
+sudo mkdir -p /etc/apt/keyrings
+
+# Add Docker's official GPG key
+echo "Adding Docker's GPG key..."
+sudo curl -fsSL https://download.docker.com/linux/debian/gpg -o /etc/apt/keyrings/docker.asc || { echo "Failed to download GPG key"; exit 1; }
+
+# Add the Docker repository
+echo "Adding Docker repository..."
 echo \
   "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/debian \
   $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
-  sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-sudo apt-get update
+  sudo tee /etc/apt/sources.list.d/docker.list || { echo "Failed to add Docker repository"; exit 1; }
 
-sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+# Update apt sources
+sudo apt-get update || { echo "Failed to update sources"; exit 1; }
+
+# Install Docker
+echo "Installing Docker..."
+sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose || { echo "Docker installation failed"; exit 1; }
+
+echo "Docker installation complete!"
 
 # Navigate to the repository and get docker-compose files
 cd ~/raspberry-pi-setup
