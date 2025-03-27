@@ -135,6 +135,10 @@ for key in "${!passwords[@]}"; do
     sed -i "s/^$key=.*/$key=$password/" docker-compose.env
 done
 
+# Prompt the user for Portainer admin password
+echo "Please enter a password for the Portainer admin user:"
+read -s PORTAINER_PASSWORD  # -s hides the input for security
+
 # Check if Portainer is already installed (by checking if the Portainer container exists)
 if ! docker ps -a --format '{{.Names}}' | grep -q 'portainer'; then
     echo "Portainer is not installed. Deploying Portainer..."
@@ -149,21 +153,29 @@ if ! docker ps -a --format '{{.Names}}' | grep -q 'portainer'; then
         -v portainer_data:/data \
         portainer/portainer-ce:2.21.5
 
-    echo "Portainer is now running."
+    # Wait for Portainer to start
+    echo "Waiting for Portainer to initialize..."
+    sleep 10  # Adjust time if needed
+
+    # Set Portainer admin password (using the user-provided password)
+    echo "Setting Portainer admin password..."
+    docker exec -it portainer /portainer --admin-password $PORTAINER_PASSWORD
+
+    echo "Portainer is now running with the pre-set admin password."
 else
     echo "Portainer is already deployed!"
 fi
 
 # Deploy the Docker Compose stacks
-echo "Deploying Docker Compose stacks..."
-docker-compose up -d
-
-# Install Tailscale (latest version)
-echo "Installing Tailscale..."
-curl -fsSL https://tailscale.com/install.sh | sh
-
-# Start Tailscale
-echo "Starting Tailscale..."
-sudo tailscale up
+#echo "Deploying Docker Compose stacks..."
+#docker-compose up -d
+#
+## Install Tailscale (latest version)
+#echo "Installing Tailscale..."
+#curl -fsSL https://tailscale.com/install.sh | sh
+#
+## Start Tailscale
+#echo "Starting Tailscale..."
+#sudo tailscale up
 
 echo "Setup complete!"
